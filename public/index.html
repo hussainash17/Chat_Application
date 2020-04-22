@@ -9,7 +9,7 @@
     Chat App
 
     <div id="messages">
-        
+
     </div>
 
     <form id="message-form">
@@ -21,7 +21,13 @@
 
     <script id="message-template" type="text/html">
         <div>
-            <p>This is a message</p>
+            <p>{{createdAt}} - {{message}}</p>
+        </div>
+    </script>
+
+    <script id="location-template" type="text/html">
+        <div>
+            <p><a href="{{url}}" target='_blank'>My location</a></p>
         </div>
     </script>
 
