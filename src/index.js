@@ -17,10 +17,18 @@ app.use(express.static(publicDirectoryPath))
 io.on('connection', (socket) => {
     console.log('New websocket')
 
-    socket.emit('message',  generateMessages('Welcome'))
+    // receive join
+    socket.on('join', ({username, room}) => {
+        socket.join(room)
 
-    // if any user joined notify all
-    socket.broadcast.emit('message', generateMessages('A new user has joined'))
+        socket.emit('message',  generateMessages('Welcome'))
+        // if any user joined notify all
+        socket.broadcast.to(room).emit('message', generateMessages(`${username} has joined`))
+
+        // io.to.emit = emit event in a specific room
+        // socket.broadcast.to.emit = emit everyone in a specific room except himself
+
+    })
 
     // receive message from client
     socket.on('sendMessage', (msg, callback) => {
@@ -29,7 +37,7 @@ io.on('connection', (socket) => {
         if( filter.isProfane(msg)){
             return callback('Profanity is not allowed')
         }
-        io.emit('message', generateMessages(msg))
+        io.to('valanay').emit('message', generateMessages(msg))
         callback()
     })
     // if disconnected a message is sent
