@@ -4,6 +4,7 @@ const path = require('path')
 const socketio = require('socket.io')
 const Filter = require('bad-words')
 const { generateMessages, generateLocationMessage } = require('./utills/messages')
+const { addUser, removeUser, getUser, getUsersInRoom} = require('./utills/users')
 
 const app = express()
 
@@ -18,13 +19,20 @@ io.on('connection', (socket) => {
     console.log('New websocket')
 
     // receive join
-    socket.on('join', ({username, room}) => {
-        socket.join(room)
+    socket.on('join', ({username, room}, callback) => {
+        const {error , user } = addUser({ id: socket.id, username, room})
+
+        if (error){
+            return callback(error)
+        }
+
+        socket.join(user.room)
 
         socket.emit('message',  generateMessages('Welcome'))
         // if any user joined notify all
-        socket.broadcast.to(room).emit('message', generateMessages(`${username} has joined`))
+        socket.broadcast.to(user.room).emit('message', generateMessages(`${user.username} has joined`))
 
+        callback()
         // io.to.emit = emit event in a specific room
         // socket.broadcast.to.emit = emit everyone in a specific room except himself
 
@@ -42,7 +50,10 @@ io.on('connection', (socket) => {
     })
     // if disconnected a message is sent
     socket.on('disconnect', () => {
-        io.emit('message', generateMessages('A user has left'))
+        const user = removeUser(socket.id)
+        if (user) {
+            io.to(user.room).emit('message', generateMessages(`${user.username} has left`))
+        }
     })
 
     //receive location
