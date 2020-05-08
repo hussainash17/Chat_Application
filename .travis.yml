@@ -1,1 +1,3 @@
 language: node_js
+npm:
+  -6.13.4
